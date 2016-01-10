@@ -45,8 +45,8 @@ if (!exists("dfSessions_byUser")){
                            mean = mean(secs_elapsed, na.rm = TRUE), 
                            sd = sd(secs_elapsed, na.rm = TRUE), 
                            N = length(secs_elapsed),
-                           max = max(secs_elapsed),
-                           min = min(secs_elapsed)
+                           max = max(secs_elapsed, na.rm = TRUE),
+                           min = min(secs_elapsed, na.rm = TRUE)
                              )
 }
 
@@ -62,17 +62,21 @@ if (!exists("df_merged1")){
 proc.time() - ptm
 
 # plot histograms of the various sessions statistics
-colsOI <- c("id", "country_destination", "sum", "mean", "sd", "N")
+colsOI <- c("id", "country_destination", "sum", "mean", "sd", "N", "min", "max")
 df_merged2 <- df_merged1[,colsOI]
-mdata <- melt(df_merged2, id = "id")
+#mdata <- melt(df_merged2, id = "id")
 
 # add column to indicate whether travel occurred or not
-mdata <- mutate(mdata, travel = 1.*(value != "NDF"))
+#mdata <- mutate(mdata, travel = 1.*(value != "NDF"))
 df_merged2 <- mutate(df_merged2, travel = 1.*(country_destination != "NDF"))
+
+# save to hard disk
+saveName <- "dfTrain_sessionStats1.csv"
+write.csv(df_merged1, saveName)
 
 # plot: N
 q <- ggplot(data=df_merged2, aes(x = N, fill = as.factor(travel)))
-q + geom_histogram(alpha = 0.5, position = 'dodge', binwidth = 20) +
+q + geom_histogram(alpha = 0.5, position = 'dodge', binwidth = 5) +
   xlim(c(0,500))
 
 # plot: sum
@@ -87,3 +91,11 @@ q + geom_histogram(alpha = 0.5, position = 'dodge', binwidth = 2000) + xlim(c(0,
 # plot: sd
 q <- ggplot(data=df_merged2, aes(x = sd, fill = as.factor(travel)))
 q + geom_histogram(alpha = 0.5, position = 'dodge', binwidth = 2000) + xlim(c(0,2e5))
+
+# plot: max
+q <- ggplot(data=df_merged2, aes(x = max, fill = as.factor(travel)))
+q + geom_histogram(alpha = 0.5, position = 'dodge')# + xlim(c(0,2e5))
+
+# plot: min
+q <- ggplot(data=df_merged2, aes(x = min, fill = as.factor(travel)))
+q + geom_histogram(alpha = 0.5, position = 'dodge', binwidth = 10)# + xlim(c(0,2e5))
